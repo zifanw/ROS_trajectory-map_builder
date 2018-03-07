@@ -1,11 +1,27 @@
 
+#1. make
 把trajectory_yxsk放到 /src下
 然后
 catkin_make
 之后
 source devel/setup.bash
 
-然后直接启动
-roslaunch trajectory_yxsk trajectory.launch
+#2. IP address
 
-P.S: 更改串口号，到src/launch/trajectory.launch里面更改第5行 
+change the ip address of the server in /src/wifi.py and /src/wifi_map.py
+the port number is reserved for transmission:
+
+port 60000: trajectory 
+port 60001: map 
+
+#3. start the server 
+
+#For V-Slam, 
+
+roslaunch trajectory_yxsk trajectory_vision.launch
+
+#For Laser-Slam,
+
+roslaunch trajectory_yxsk trajectory_laser.launch
+
+
