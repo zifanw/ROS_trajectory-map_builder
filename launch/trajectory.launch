@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find trajectory_yxsk)/launch/display.launch"/>
+  <node name="serial_port" pkg="serial_port" type="serial_port">
+    <remap from="/dev/ttyUSB0" to="/dev/ttyUSB0" />
+  </node>
+  <node name="dp" pkg="trajectory_yxsk" type="dp_new.py"/>
+  <node name="showpath" pkg="trajectory_yxsk" type="showpath.py"/>
+
+</launch>
