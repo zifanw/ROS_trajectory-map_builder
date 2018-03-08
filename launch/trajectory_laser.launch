@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find trajectory_yxsk)/launch/display.launch"/>
+  <node name="wifi_path" pkg="trajectory_yxsk" type="wifi.py"/>
+  <node name="wifi_map" pkg="trajectory_yxsk" type="wifi_map.py"/>
+  <node name="dp" pkg="trajectory_yxsk" type="dp_bak.py"/>
+  <node name="map" pkg="trajectory_yxsk" type="dp_new_laser_map.py"/>
+  <node name="showpath" pkg="trajectory_yxsk" type="showpath.py"/>
+
+</launch>

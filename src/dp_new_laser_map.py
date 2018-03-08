@@ -10,75 +10,94 @@ from nav_msgs.msg import *
 class dp():
     def __init__(self):
         rospy.init_node('map', anonymous=True)
-        #rospy.loginfo('The mapping is initilized...')
         self.pub = rospy.Publisher('map', OccupancyGrid, queue_size = 1000)
-        #rospy.loginfo('The mapping is initilizing...')
-        self.sync = 0
         self.map = OccupancyGrid()
-        self.map.header.seq = 0
+        self.map.header.seq = 1
         self.map.header.frame_id = 'odom'
         self.map.info.resolution = 0.05
-        self.map.info.width = 600
-        self.map.info.height = 600
-        self.map.info.origin.position.x = 0
-        self.map.info.origin.position.y = 0
         self.map.info.origin.position.z = 0
         self.map.info.origin.orientation.x = 0
         self.map.info.origin.orientation.y = 0
         self.map.info.origin.orientation.z = 0
         self.map.info.origin.orientation.w = 1
+        self.map.info.origin.position.x = 0
+        self.map.info.origin.position.y = 0
+        self.map.info.width = 10
+        self.map.info.height = 10
         self.buffer = []
-        rospy.Subscriber('/read/map',String, self.callback, queue_size=1000)
+        self.x = 0
+        self.y = 0
+        self.width = 1
+        self.height = 1
         rospy.loginfo('The mapping is initialized and waiting for transmission...')
+        rospy.Subscriber('/read/map',String, self.callback, queue_size=1000)
         rospy.wait_for_message('/read/map',String)
 
     def callback(self, data):
         L = list(data.data)
-        L = map(ord, L)
+        L = map(self.quatilization, map(ord, L))
         #rospy.loginfo(L)
-        if self.sync == 0 and 77 in L: # M = 77
+        if 0xA5 in L: # A5A5 is the head
+            rospy.loginfo("the head is found.")
+            if self.check(self.buffer):
+                rospy.loginfo("A complete map is received and passed to the builder")
+                self.mapping(self.buffer)
+            else:
+                rospy.loginfo("the last map is not valid")
             self.synch(L)
-            rospy.loginfo("sync is successful.")
-        elif self.sync:
-            if len(self.buffer) < 360003 and 77 not in L:
-                self.buffer.extend(L) # insert into the buffer
-            elif len(self.buffer) < 360003 and 77 in L:
-                head = L.index(77)
-                self.buffer.extend(L[:head])
-                if len(self.buffer) == 360003:
-                    self.mapping(self.buffer) # create a map
-                    rospy.loginfo("a complete map is found")
-                    self.buffer = L[head:]
-                else: #damaged map
-                    self.buffer = L[head:]
-                    rospy.loginfo("an incomplete map is found")
-        #elif 0 in L:
-        #    rospy.loginfo("found 0")
-        #elif 255 in L:
-        #    rospy.loginfo("found 255")
+
+        elif 0x5A in L:
+            head = L.index(0x5A)
+            self.buffer.extend(L[head+10:])
+
+
     def synch(self, L):
-        head = L.index(77)
-        if L[head+1] == 65 and L[head+2] == 80: # A = 65 P = 80
-            self.sync = 1
-            self.buffer = L[head:]
+        head = L.index(0xA5)
+        if L[head+1] == 0xA5:
+            self.x = self.hex2float(L[head+2], L[head+3])
+            self.y = self.hex2float(L[head+4], L[head+5])
+            self.width = (L[head+6] << 8) + L[head+7]
+            self.height = (L[head+8] << 8) + L[head+9]
+            self.buffer = L[head+10:]
 
-    def mapping(self, HitMap):
-        if len(HitMap) == 360003 and HitMap[0] == 77:
-            self.map.data = map(self.quatilization, HitMap[3:])
-            self.map.header.stamp = rospy.Time.now()
-            self.map.info.map_load_time = self.map.header.stamp
+    def hex2float(self, high, low):
+        speed = low + (high << 8)
+        if speed > 32768:
+            speed = ~((~speed) & 0x0000FFFF)
+        return float(speed) / 1000.0
+
+    def mapping(self, LaserMap):
+        rospy.loginfo("Prepare for the display using rviz")
+        if 200 in LaserMap:
+            H = LaserMap.index(200)
+            self.map.data = LaserMap[:H]
+            self.map.info.origin.position.x = self.x
+            self.map.info.origin.position.y = self.y
+            self.map.info.width = self.width
+            self.map.info.height = self.height
             self.pub.publish(self.map)
-
-    def quatilization(self, x):
-        if x == 127:
-            return -1 # unknown
-        elif x == 255 :
-            return 50 # path
-        elif x == 0: # barrier
-            return 100
         else:
-            return -1
+            rospy.loginfo("this map is not valid")
 
+    def check(self, buf):
+        if 200 in buf:
+            tail = buf.index(200)
+            L = buf[:tail]
+            if len(L) == self.width * self.height:
+                return True
+            else:
+                return False
+        else:
+            if len(buf) == self.width * self.height:
+                return True
+            else:
+                return False
+
+    def quatilization(self,x):
+        if x == 255:
+            return -1
+        else:
+            return x
 
 if __name__ == '__main__':
     try:

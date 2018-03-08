@@ -39,7 +39,7 @@ class myconnection():
 
 if __name__ == '__main__':
     try:
-    	myconnection('192.168.3.168',60000) # port ID 60000 is set for the trajectory
+    	myconnection('192.168.3.168',60004) # port ID 60000 is set for the trajectory
     	rospy.spin()
     except:
     	pass

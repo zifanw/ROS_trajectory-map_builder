@@ -16,6 +16,7 @@ class showpath():
 		#rospy.loginfo('showpath is initialized...')
 		self.odom_broadcaster = tf.TransformBroadcaster()
 		self.marker_pub = rospy.Publisher('line', Marker, queue_size = 10)
+		self.marker_wide_pub = rospy.Publisher('wideline', Marker, queue_size = 10)
 		self.sub = rospy.Subscriber('/info/trajectory', Pose2D, self.callback, queue_size = 10)
 		self.path = Path()
 		self.path.header.stamp = rospy.Time.now()
@@ -23,10 +24,15 @@ class showpath():
 		self.this_pose_stamped = PoseStamped()
 
 		self.marker = Marker()
+		self.marker1 = Marker()
 		self.marker.id = 0
 		self.marker.ns = "basic_shapes"
 		self.marker.type = 4
-		self.marker.action = 0
+		self.marker.action = 0	
+		self.marker1.id = 1
+		self.marker1.ns = "wide_line"
+		self.marker1.type = 4
+		self.marker1.action = 0	
 
                 rospy.loginfo('showpath is initialized...')
 		#self.point = Point()
@@ -80,6 +86,26 @@ class showpath():
 		#self.markers.markers.append(self.marker)
 		self.marker_pub.publish(self.marker)
 
+		self.marker1.header.frame_id = 'odom'
+		self.marker1.header.stamp = rospy.Time.now()
+
+		self.marker1.frame_locked = True
+		#self.marker.pose.position.z = self.point.z = 0.0
+		self.marker1.pose.orientation.w = 1.0
+		self.marker1.color.r = 1.0
+		self.marker1.color.g = 1.0
+		self.marker1.color.b = 1.0
+		self.marker1.color.a = 0.3
+		#self.marker.colors.append(self.marker.color)
+		self.marker1.scale.x = 0.2
+		self.marker1.points.append(point)
+		#self.marker.scale.y = 0.02
+		#self.marker.scale.z = 0.001
+		self.marker1.lifetime.secs = 100
+		self.marker1.lifetime.nsecs = 0.0
+		#self.marker_wide_pub.publish(self.marker1)
+
+		#self.this_pose_stamped.header.stamp
 	def move_robot(self):
 		self.odom_broadcaster.sendTransform((self.this_pose_stamped.pose.position.x, self.this_pose_stamped.pose.position.y, 0), self.q, self.this_pose_stamped.header.stamp, "base_link", "odom")
 		odom = Odometry()

@@ -41,7 +41,7 @@ class myconnection():
 
 if __name__ == '__main__':
     try:
-    	myconnection('192.168.3.168',60001) # port ID 60001 is set for the map
+    	myconnection('192.168.3.168',60000) # port ID 60001 is set for the map
     	rospy.spin()
     except:
     	pass

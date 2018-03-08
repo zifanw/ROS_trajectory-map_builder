@@ -25,7 +25,3 @@ roslaunch trajectory_yxsk trajectory_vision.launch
 roslaunch trajectory_yxsk trajectory_laser.launch
 
 
-=======
-Structure:
-![alt text](/picture/ros_trajectory.bmp)
->>>>>>> 7a3066f13183e6194eaf47c72b61b4871b9da535

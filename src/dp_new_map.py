@@ -37,7 +37,7 @@ class dp():
         L = map(ord, L) # transfer hex integer into decimal integer
         if self.sync == 0 and 77 in L: # M = 77, check the header 'MAP'
             self.synch(L)# do the synchronization
-            rospy.loginfo("sync is successful.")
+            #rospy.loginfo("sync is successful.")
         elif self.sync: # if synchronization is already complete
             if len(self.buffer) < 360003 and 77 not in L: # if this pkg is the body of a transmitting map
                 self.buffer.extend(L) # insert into the buffer
@@ -89,7 +89,7 @@ class dp():
         if x == 127:
             return -1 # unknown
         elif x == 255 :
-            return 20 # path
+            return 0 # path
         elif x == 0: # barrier
             return 100
         else:
