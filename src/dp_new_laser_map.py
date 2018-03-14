@@ -35,10 +35,13 @@ class dp():
 
     def callback(self, data):
         L = list(data.data)
+        #L = int(L)
         L = map(self.quatilization, map(ord, L))
-        #rospy.loginfo(L)
+        #rospy.loginfo(str(L))
+        rospy.loginfo("len(L) = " + str(len(L)) + ", L[0] = " + str(L[0]) + ", L[1] = " + str(L[1]));
         if 0xA5 in L: # A5A5 is the head
             rospy.loginfo("the head is found.")
+            
             if self.check(self.buffer):
                 rospy.loginfo("A complete map is received and passed to the builder")
                 self.mapping(self.buffer)
@@ -48,8 +51,37 @@ class dp():
 
         elif 0x5A in L:
             head = L.index(0x5A)
-            self.buffer.extend(L[head+10:])
+            if L[head+1] == 0x5A:
+                if head == 0:
+                    self.buffer.extend(L[head+10:])
+                else:
+                    self.buffer.extend(L[0:head])
+                    self.buffer.extend(L[head+10:])
+            else:
+                if 200 in L:
+                    head = L.index(200)
+                    if head == 0:
+                        rospy.loginfo(str(L))
+                    else:
+                        self.buffer.extend(L[0:head])
+                else:
+                    self.buffer.extend(L) # in this sequence, there is no 0xA5 or 200
+        else:
+            # a sequence without 0xA5 or 0x5A
+            bufLen = len(self.buffer)
+            if bufLen == 0:
+                rospy.loginfo(str(L))
+            else:
 
+                if 200 in L:
+                    head = L.index(200)
+
+                    if head == 0:
+                        rospy.loginfo(str(L))
+                    else:
+                        self.buffer.extend(L[0:head])
+                else:
+                    self.buffer.extend(L)
 
     def synch(self, L):
         head = L.index(0xA5)
@@ -80,9 +112,12 @@ class dp():
             rospy.loginfo("this map is not valid")
 
     def check(self, buf):
+        rospy.loginfo("self.width = " + str(self.width) + ", self.height = " + str(self.height))
         if 200 in buf:
             tail = buf.index(200)
             L = buf[:tail]
+            wph = self.width * self.height
+            rospy.loginfo("len(L) = " + str(len(L)) + ", width*height = " + str(wph))
             if len(L) == self.width * self.height:
                 return True
             else:

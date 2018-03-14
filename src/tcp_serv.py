@@ -20,7 +20,7 @@ def tcplink(sock,addr):
 if __name__ == '__main__':
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-    s.bind(('192.168.3.142',60000))
+    s.bind(('192.168.3.147',60000))
     s.listen(5)
     print 'Waiting for connection...'
     while True:
